@@ -15,7 +15,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
 from .models import CarMake, CarModel
-from .restapis import get_request # restapis.py dosyasındaki fonksiyonu içe aktarın
+from .restapis import get_request, analyze_review_sentiments, post_review
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
@@ -106,22 +106,36 @@ def get_dealer_details(request, dealer_id):
     if(dealer_id):
         endpoint = "/fetchDealer/" + str(dealer_id)
         dealership = get_request(endpoint)
-        return JsonResponse({"status": 200, "dealer": dealership})
-    else:
-        return JsonResponse({"status": 400, "message": "Bad Request"})
+        
+        # TERMINALE BAKIN: Veri gerçekten ne isimle geliyor?
+        print(f"DEBUG: Dealership verisi -> {dealership}") 
+        
+        if not dealership:
+            return JsonResponse({"status": 404, "message": "Dealer not found"})
 
+        return JsonResponse({"status": 200, "dealer": [dealership]})
 # Bayi yorumlarını getiren ve duygu analizi yapan fonksiyon
 def get_dealer_reviews(request, dealer_id):
     if(dealer_id):
         endpoint = "/fetchReviews/dealer/" + str(dealer_id)
         reviews = get_request(endpoint)
-        # Her bir yorum için duygu analizi yap (Sentiment Analysis)
+        
+        if reviews is None:
+            return JsonResponse({"status": 200, "reviews": []})
+            
         for review_detail in reviews:
-            response = analyze_review_sentiments(review_detail['review'])
-            review_detail['sentiment'] = response['sentiment']
+            try:
+                response = analyze_review_sentiments(review_detail['review'])
+                if response is not None and 'sentiment' in response:
+                    review_detail['sentiment'] = response['sentiment']
+                else:
+                    review_detail['sentiment'] = "neutral"
+            except Exception as err:
+                # Bağlantı hatası olsa bile burada yakalayıp neutral atıyoruz
+                print(f"Sentiment service error: {err}")
+                review_detail['sentiment'] = "neutral"
+                
         return JsonResponse({"status": 200, "reviews": reviews})
-    else:
-        return JsonResponse({"status": 400, "message": "Bad Request"})
 
 # Yeni yorum ekleme fonksiyonu
 def add_review(request):
