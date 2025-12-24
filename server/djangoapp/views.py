@@ -1,5 +1,4 @@
 # Uncomment the required imports before adding the code
-import requests
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.http import JsonResponse
@@ -9,7 +8,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
 from .models import CarMake, CarModel
-from .restapis import get_request, analyze_review_sentiments, post_review  # DÜZELTİLDİ: Virgül hatası giderildi ve post_review eklendi.
+from .restapis import get_request, analyze_review_sentiments, post_review
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -119,7 +118,8 @@ def add_review(request):
         return JsonResponse({"status": 403, "message": "Unauthorized"})
     data = json.loads(request.body)
     try:
-        post_review(data)  # DÜZELTİLDİ: requests.post(url) yerine restapis'teki post_review kullanıldı.
+        post_review(data)
         return JsonResponse({"status": 200})
     except Exception as e:
-        return JsonResponse({"status": 401, "message": f"Error in posting review: {e}"})
+        return JsonResponse({"status": 401,
+                            "message": f"Error in posting review: {e}"})
