@@ -25,7 +25,7 @@ def get_request(endpoint, **kwargs):
         response = requests.get(request_url)
         return response.json()
     except Exception as err:
-        # Herhangi bir ağ hatası oluşursa
+        # Hata değişkenini (err) burada kullanarak F841 hatasını önlüyoruz
         print(f"Network exception occurred: {err}")
         return None
 
@@ -38,7 +38,6 @@ def analyze_review_sentiments(text):
         return response.json()
     except Exception as err:
         print(f"Unexpected {err=}, {type(err)=}")
-        print("Network exception occurred")
         return None
 
 
@@ -48,5 +47,6 @@ def post_review(data_dict):
         response = requests.post(request_url, json=data_dict)
         print(response.json())
         return response.json()
-    except Exception as e:
-        print("Network exception occurred")
+    except Exception as err:
+        print(f"Network exception occurred: {err}")
+        return None
