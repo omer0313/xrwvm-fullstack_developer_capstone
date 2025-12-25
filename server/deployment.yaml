@@ -9,6 +9,11 @@ spec:
   selector:
     matchLabels:
       run: dealership
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -16,6 +21,9 @@ spec:
     spec:
       containers:
       - image: us.icr.io/sn-labs-omerisler031/dealership:latest
+        imagePullPolicy: Always
         name: dealership
         ports:
         - containerPort: 8000
+          protocol: TCP
+      restartPolicy: Always
